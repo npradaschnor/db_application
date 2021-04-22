@@ -1,0 +1,5 @@
+{ "_id": 1, "keywords": ["dinosaurs", "theme park"], "subtitles": ["English", "Spanish"] } { "_id": 2, "keywords": ["spider", "superhero"], "subtitles": ["English", "German", "Spanish"] } { "_id": 57, "keywords": ["flying"], "subtitles": ["English"] } { "_id": 114, "keywords": ["World War II", "war", "enemy"], "subtitles": ["English, French"] } { "_id": 218, "subtitles": ["English"] } { "_id": 223, "keywords": ["World War II", "war", "Berlin"], "subtitles": ["English, German, French"] } { "_id": 224, "keywords": ["World War II", "war", "Japan"] }
+
+use movieScriptsDB
+
+db.movieScripts.find({ subtitles: { $existis: true } }, subtitles: "Spanish")
