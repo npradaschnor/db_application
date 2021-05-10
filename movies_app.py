@@ -8,16 +8,18 @@
 #Import the file containing the functions 
 
 import moviesDB_appDB
+import re
+import copy
 
 
 def main():
 
   ###################################################################################################################################################
 
-  #Input messages
+  #Input messages  - useful in case you need to change it to another language, you do not need to change too much the code, but only a few variables like this
 
   Choice = "Choice: "
-  YOBStr = "Year of Birth: " #this is useful in case you need to change it to another language, you do not need to change too much the code, but only a few variables like this
+  YOBStr = "Year of Birth: "
   GenderStr = "Gender (Male/Female): "
   IDNum = "ID: "
   LanguageStr = "Enter Subtitle Language: "
@@ -67,10 +69,19 @@ def main():
   #######################################################################
 
       elif (choice == '3'):
+        studioList = False #set a variable as False. If choice 3 was already selected, it will change to True
 
         try:
           moviesDB_appDB.studios_header() #header
-          moviesDB_appDB.print_studios()#get the list of ID and name of all studios
+
+          if studioList == True: #if choice 3 has been chosen
+            moviesDB_appDB.print_studios(studios) #display the same result as the first time
+
+          elif studioList == False: #if the choice 3 has not been chosen
+            studios = moviesDB_appDB.get_studio()#get the list of ID and name of all studios
+            moviesDB_appDB.print_studios(studios) #print the result
+            studioList = True #change the variable status
+            
           display_menu() # after the list is displayed, then show the menu of options
           
         except Exception as e:
@@ -100,8 +111,9 @@ def main():
         try:
           moviesDB_appDB.subtitles_header() #header
           language = no_input(LanguageStr) #input: language
-          moviesDB_appDB.languageSubtitles_header(language) #result's header
-          fID = moviesDB_appDB.film_subtitle(language) 
+          languageCheck = moviesDB_appDB.search_language(language) #check if is a 'valid' language and user confirm the input entered
+          moviesDB_appDB.languageSubtitles_header(languageCheck) #result's header
+          fID = moviesDB_appDB.film_subtitle(languageCheck) 
           moviesDB_appDB.get_filmSynopsis(fID)
           display_menu() #after the output is displaed, then show the menu of options
 
@@ -126,7 +138,7 @@ def main():
           else:
             print("Error: ", e)
       
-      elif (choice == 'X' or 'x'):  # if the user choose X(upper of lowercase), then stop running the code
+      elif (choice == 'X' or choice =='x'):  # if the user choose X(upper or lowercase), then stop running the app
         moviesDB_appDB.close_connection()  # close MySQL connection
         break
 
@@ -158,21 +170,28 @@ def get_inputNumber(g): #function that returns an integer input
   while True:
     
     try:
-
       x = int(input(g))
     
     except Exception as e:
-      if e is ValueError or e is TypeError: #if user entered strings, not integer
+      if e is ValueError or e is TypeError: #if user entered strings(not integer)
         continue #keep asking for input
     
-    else: #if an int is provided, then stop asking for input
+    else: #if an integer is provided, then stop asking for input
         break
  
+  return x #return the input
+
+
+def get_inputString(g): #function that returns a string in a standardilised way: just the first letter Capitalised
+  x = input(g)
+
+  if x.isupper: #check if the string is uppercase
+    x = x.lower() #if True, then convert it to lowercase
+    x = x.capitalize() #and capitalise the 1st letter
+  elif x.islower(): #if the string is lowercase
+    x = x.capitalize() #capitalise the 1st letter
+  
   return x
-
-
-def get_inputString(g): #function that returns a string user input
-  return input(g)
 
 
 def get_inputNone(g): #function that returns 'None' if the user has not entered an input value and keep asking for a input if not valid
@@ -182,34 +201,49 @@ def get_inputNone(g): #function that returns 'None' if the user has not entered 
     try:
 
       x = input(g)
+      x = x.lower()
+      x = x.capitalize()
 
       if x == '': #if no input is provided, then the input is considered as 'None'
         x = None
         return x 
       
-      elif x == 'Female' or x == 'Male': 
+      elif x == 'F':
+        return 'Female'
+      
+      elif x == 'M':
+        return 'Male'
+
+
+      elif x in ['Female','Male']: 
         return x
 
-      elif x != 'Female' or x != 'Male' or x != '':
-        print("Invalid gender option. Try again.")
+      elif x not in ['Female','F','Male','M','']:
+        print("***ERROR***: Invalid input. Try again.")
         continue
-      #  continue #there are 3 options of input: no input, Female or Male. If the input entered by the user is none of the 3 possible options, then s/he will get a message that the input is invalid, and the app will keep asking for input.
+      #there are 3 options of input: no input, Female or Male. If the input entered by the user is none of the 3 possible options, then s/he will get a message that the input is invalid, and the app will keep asking for input.
     
     except Exception as e:
       print("***ERROR***: ", e)
 
 
-def no_input(g): #function that keeps asking for input if the user has not entered one
+def no_input(g): #function that keeps asking for input if the user has not entered one or if s/he has not entered a letter/char
 
   x = input(g)
 
-  while x == '': #if no input is entered, then it keep asking for a input
+  # if no input is entered or if an input that is not a letter/char, then it keep asking for a input
+  while x == '' or not re.match("^[a-z]*$", x):
 
     x = input(g)
+ 
+  if x.isupper:  # check if the string is uppercase
+    x = x.lower()  # if True, then convert it to lowercase
+    x = x.capitalize()  # and capitalise the 1st letter
+  elif x.islower():  # if the string is lowercase
+    x = x.capitalize()  # capitalise the 1st letter
+
+  return x
   
-  return x.capitalize()  # return the input with the first letter capitalized
-
-
 def choice_input(g):
 
   c = ['1','2','3','4','5','6','x','X']
